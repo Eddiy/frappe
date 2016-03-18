@@ -3,17 +3,17 @@ from . import __version__ as app_version
 
 
 app_name = "frappe"
-app_title = "Frappe Framework"
-app_publisher = "Frappe Technologies"
+app_title = "Bituls Framework"
+app_publisher = "Bituls Company Ltd"
 app_description = "Full stack web framework with Python, Javascript, MariaDB, Redis, Node"
 app_icon = "octicon octicon-circuit-board"
 app_color = "orange"
-source_link = "https://github.com/frappe/frappe"
+source_link = "https://git.bituls.com/framework.git"
 app_license = "MIT"
 
 develop_version = '10.x.x-develop'
 
-app_email = "info@frappe.io"
+app_email = "info@bituls.com"
 
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
