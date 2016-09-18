@@ -358,16 +358,13 @@ def check_if_ready_for_barracuda():
 
 		if mariadb_variables.get(key) != value:
 			site = frappe.local.site
-			msg = ("Creation of your site - {x} failed because MariaDB is not properly {sep}"
+			msg = ("Warning!! Your site - {x} may fail to work because MariaDB is not properly {sep}"
 			       "configured to use the Barracuda storage engine. {sep}"
 			       "Please add the settings below to MariaDB's my.cnf, restart MariaDB then {sep}"
 			       "run `bench new-site {x}` again.{sep2}"
 			       "").format(x=site, sep2="\n"*2, sep="\n")
 
 			print_db_config(msg, expected_config_for_barracuda)
-			raise frappe.exceptions.ImproperDBConfigurationError(
-				reason="MariaDB default file format is not Barracuda"
-			)
 
 
 def print_db_config(explanation, config_text):
