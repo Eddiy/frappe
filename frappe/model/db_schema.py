@@ -523,8 +523,8 @@ class DbManager:
 	def create_database(self,target):
 		if target in self.get_database_list():
 			self.drop_database(target)
-
-		self.db.sql("CREATE DATABASE `%s` ;" % target)
+		# Enforce charset and collate defaults since these may not be set. E.g Google Cloud SQL.
+		self.db.sql("CREATE DATABASE `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" % target)
 
 	def drop_database(self,target):
 		self.db.sql("DROP DATABASE IF EXISTS `%s`;"%target)
