@@ -61,6 +61,7 @@ class Database:
 
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
+		"""Set nessesary sql_mode. In some cases, e.g google cloud sql, the user cannot do it themselves."""
 		warnings.filterwarnings('ignore', category=pymysql.Warning)
 		usessl = 0
 		if frappe.conf.db_ssl_ca and frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
@@ -80,10 +81,10 @@ class Database:
 
 		if usessl:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				charset='utf8mb4', use_unicode = True, ssl=self.ssl, conv = conversions)
+				charset='utf8mb4', use_unicode = True, ssl=self.ssl, conv = conversions, sql_mode='NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION')
 		else:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				charset='utf8mb4', use_unicode = True, conv = conversions)
+				charset='utf8mb4', use_unicode = True, conv = conversions, sql_mode='NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION')
 
 		# MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
 		# # self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
