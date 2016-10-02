@@ -229,6 +229,15 @@ def trigger_email_alerts(doc, method=None):
 				evaluate_alert(doc, alert, alert.event)
 				frappe.db.commit()
 
+
+def get_role_emails(role):
+	if not role:
+		frappe.throw('Role cannot be empty!')
+	emails = frappe.db.sql("select tu.email from tabUser as tu, tabUserRole as tur where tur.role = %s and "
+							"tur.parent = tu.name", role, as_list=True)
+	return [e[0] for e in emails]
+
+
 def evaluate_alert(doc, alert, event):
 	from jinja2 import TemplateError
 	try:
@@ -248,6 +257,8 @@ def evaluate_alert(doc, alert, event):
 				if e.args[0]== ER.BAD_FIELD_ERROR:
 					alert.db_set('enabled', 0)
 					frappe.log_error('Email Alert {0} has been disabled due to missing field'.format(alert.name))
+		if recipient.email_by_role:
+			recipients = recipients + get_role_emails(recipient.email_by_role)
 					return
 
 			db_value = parse_val(db_value)
