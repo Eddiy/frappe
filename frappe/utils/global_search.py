@@ -27,7 +27,6 @@ def setup_global_search_table():
 			published int(1) not null default 0,
 			unique `doctype_name` (doctype, name))
 			COLLATE=utf8mb4_unicode_ci
-			ENGINE=MyISAM
 			CHARACTER SET=utf8mb4''')
 
 
