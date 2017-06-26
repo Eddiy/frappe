@@ -30,6 +30,8 @@ def setup_inbox_from_email_account():
 	frappe.reload_doc("core", "doctype", "user_email")
 	frappe.reload_doc("email", "doctype", "email_account")
 
+	frappe.reload_doc("email", "doctype", "email_account")
+
 	email_accounts = frappe.get_all("Email Account", filters={"enable_incoming": 1},
 		fields=["name", "email_id", "awaiting_password", "enable_outgoing"])
 
