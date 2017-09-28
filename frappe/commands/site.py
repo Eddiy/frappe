@@ -26,18 +26,24 @@ from frappe.exceptions import SQLError
 @click.option('--force', help='Force restore if site/database already exists', is_flag=True, default=False)
 @click.option('--source_sql', help='Initiate database with a SQL file')
 @click.option('--install-app', multiple=True, help='Install app after installation')
-def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None, verbose=False, install_apps=None, source_sql=None, force=None, install_app=None, db_name=None):
+@click.option('--db-user-allowed-host', help='Specify host that the site db user may connect from. In \'user\'@\'host\', this represents the part after the \'@\'')
+@click.option('--db-user-allow-all-hosts', help='Allow all db user to connect from any host. I.e \'user\'@\'%\' in mysql', is_flag=True, default=False)
+def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None, verbose=False, install_apps=None, source_sql=None, force=None,
+	install_app=None, db_name=None, db_user_allowed_host=None, db_user_allow_all_hosts=False):
 	"Create a new site"
 	frappe.init(site=site, new_site=True)
 
+	if db_user_allow_all_hosts:
+		db_user_allowed_host = '%'
+
 	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password,
-			verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force)
+			verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force, db_user_allowed_host=db_user_allowed_host)
 
 	if len(frappe.utils.get_sites()) == 1:
 		use(site)
 
 def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None,
-	verbose=False, install_apps=None, source_sql=None,force=False, reinstall=False):
+	verbose=False, install_apps=None, source_sql=None,force=False, reinstall=False, db_user_allowed_host=None):
 	"""Install a new Frappe site"""
 
 	if not db_name:
@@ -62,7 +68,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 		installing = touch_file(get_site_path('locks', 'installing.lock'))
 
 		install_db(root_login=mariadb_root_username, root_password=mariadb_root_password, db_name=db_name,
-			admin_password=admin_password, verbose=verbose, source_sql=source_sql,force=force, reinstall=reinstall)
+			admin_password=admin_password, verbose=verbose, source_sql=source_sql,force=force, reinstall=reinstall, db_user_allowed_host=db_user_allowed_host)
 
 		apps_to_install = ['frappe'] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
 		for app in apps_to_install:

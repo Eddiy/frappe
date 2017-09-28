@@ -22,7 +22,7 @@ from frappe.utils.global_search import setup_global_search_table
 from frappe.modules.utils import sync_customizations
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
-	admin_password=None, verbose=True, force=0, site_config=None, reinstall=False):
+	admin_password=None, verbose=True, force=0, site_config=None, reinstall=False, db_user_allowed_host=None):
 	make_conf(db_name, site_config=site_config)
 	frappe.flags.in_install_db = True
 	if reinstall:
@@ -33,7 +33,7 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 	else:
 		frappe.local.db = get_root_connection(root_login, root_password)
 		frappe.local.session = frappe._dict({'user':'Administrator'})
-		create_database_and_user(force, verbose)
+		create_database_and_user(force, verbose, db_user_allowed_host=db_user_allowed_host)
 
 	frappe.conf.admin_password = frappe.conf.admin_password or admin_password
 
@@ -54,7 +54,7 @@ Check your mysql root password, or use --force to reinstall''')
 	frappe.flags.in_install_db = False
 
 
-def create_database_and_user(force, verbose):
+def create_database_and_user(force, verbose, db_user_allowed_host=None):
 	db_name = frappe.local.conf.db_name
 	dbman = DbManager(frappe.local.db)
 	if force or (db_name not in dbman.get_database_list()):
@@ -63,13 +63,13 @@ def create_database_and_user(force, verbose):
 	else:
 		raise Exception("Database %s already exists" % (db_name,))
 
-	dbman.create_user(db_name, frappe.conf.db_password)
+	dbman.create_user(db_name, frappe.conf.db_password, host=db_user_allowed_host)
 	if verbose: print("Created user %s" % db_name)
 
 	dbman.create_database(db_name)
 	if verbose: print("Created database %s" % db_name)
 
-	dbman.grant_all_privileges(db_name, db_name)
+	dbman.grant_all_privileges(db_name, db_name, host=db_user_allowed_host)
 	dbman.flush_privileges()
 	if verbose: print("Granted privileges to user %s and database %s" % (db_name, db_name))
 
