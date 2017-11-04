@@ -211,6 +211,20 @@ def after_request(rollback):
 
 application = local_manager.make_middleware(application)
 
+if os.environ.get('FRAPPE_PROFILE'):
+	application = ProfilerMiddleware(application, sort_by=('cumtime', 'calls'))
+
+if os.environ.get('FRAPPE_STATICS'):
+	application = SharedDataMiddleware(application, {
+		b'/assets': os.path.join('.', 'assets').encode("utf-8"),
+	})
+	application = StaticDataMiddleware(application, {
+		b'/files': os.path.abspath('.').encode("utf-8")
+	})
+if os.environ.get('FRAPPE_DEBUG'):
+	application.debug = True
+
+
 def serve(port=8000, profile=False, site=None, sites_path='.'):
 	global application, _site, _sites_path
 	_site = site
