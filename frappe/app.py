@@ -106,7 +106,7 @@ def init_request(request):
 	frappe.local.request = request
 	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With")=="XMLHttpRequest"
 
-	site = _site or request.headers.get('X-Frappe-Site-Name') or get_site_name(request.host)
+	site = _site or request.headers.get('X-Frappe-Site-Name') or os.environ.get('FRAPPE_DEFAULT_SITE') or get_site_name(request.host)
 	frappe.init(site=site, sites_path=_sites_path)
 
 	if not (frappe.local.conf and frappe.local.conf.db_name):
