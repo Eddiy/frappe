@@ -58,7 +58,7 @@ def create_database_and_user(force, verbose, db_user_allowed_host=None):
 	db_name = frappe.local.conf.db_name
 	dbman = DbManager(frappe.local.db)
 	if force or (db_name not in dbman.get_database_list()):
-		dbman.delete_user(db_name)
+		dbman.delete_user(db_name, host=db_user_allowed_host)
 		dbman.drop_database(db_name)
 	else:
 		raise Exception("Database %s already exists" % (db_name,))
