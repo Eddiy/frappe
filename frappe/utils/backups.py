@@ -106,7 +106,7 @@ class BackupGenerator:
 
 			print('Backed up files', os.path.abspath(backup_path))
 
-	def take_dump(self):
+	def take_dump(self, no_compress=False):
 		import frappe.utils
 
 		# escape reserved characters
@@ -115,6 +115,9 @@ class BackupGenerator:
 
 		cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s > %(backup_path_db)s """ % args
 		err, out = frappe.utils.execute_in_shell(cmd_string)
+		
+		if no_compress:
+			return
 
 		cmd_string = 'gzip %(backup_path_db)s '% args
 		err, out = frappe.utils.execute_in_shell(cmd_string)

@@ -9,6 +9,7 @@ from frappe.limits import update_limits, get_limits
 from frappe.installer import update_site_config
 from frappe.utils import touch_file, get_site_path
 from six import text_type
+from frappe.utils.backups import BackupGenerator
 
 # imports - third-party imports
 from pymysql.constants import ER
@@ -25,25 +26,29 @@ from frappe.exceptions import SQLError
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
 @click.option('--force', help='Force restore if site/database already exists', is_flag=True, default=False)
 @click.option('--source_sql', help='Initiate database with a SQL file')
+@click.option('--source-db', help='Initialize database from existing db')
 @click.option('--install-app', multiple=True, help='Install app after installation')
 @click.option('--db-user-allowed-host', help='Specify host that the site db user may connect from. In \'user\'@\'host\', this represents the part after the \'@\'')
 @click.option('--db-user-allow-all-hosts', help='Allow all db user to connect from any host. I.e \'user\'@\'%\' in mysql', is_flag=True, default=False)
-def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None, verbose=False, install_apps=None, source_sql=None, force=None,
-	install_app=None, db_name=None, db_user_allowed_host=None, db_user_allow_all_hosts=False):
+def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None, verbose=False,
+			 install_apps=None, source_sql=None, source_db=None, force=None, install_app=None, db_name=None,
+			 db_user_allowed_host=None, db_user_allow_all_hosts=False):
 	"Create a new site"
 	frappe.init(site=site, new_site=True)
 
 	if db_user_allow_all_hosts:
 		db_user_allowed_host = '%'
 
-	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password,
-			verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force, db_user_allowed_host=db_user_allowed_host)
+	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password,
+			  admin_password=admin_password, verbose=verbose, install_apps=install_app, source_sql=source_sql,
+			  force=force, source_db=source_db, db_user_allowed_host=db_user_allowed_host)
 
 	if len(frappe.utils.get_sites()) == 1:
 		use(site)
 
 def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None,
-	verbose=False, install_apps=None, source_sql=None,force=False, reinstall=False, db_user_allowed_host=None):
+	verbose=False, install_apps=None, source_sql=None,force=False, source_db=False, reinstall=False,
+			  db_user_allowed_host=None):
 	"""Install a new Frappe site"""
 
 	if not db_name:
@@ -62,6 +67,9 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 		enable_scheduler = False
 
 	make_site_dirs()
+
+	if source_db:
+		source_sql = create_existing_db_backup(source_db, mariadb_root_password, mariadb_root_username)
 
 	installing = None
 	try:
@@ -88,6 +96,17 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 			os.remove(installing)
 
 		frappe.destroy()
+
+
+def create_existing_db_backup(db_name, root_password, root_user='root'):
+	bk_name = 'frappe-source-db.sql.gz'
+	odb = BackupGenerator(db_name, root_user, root_password, backup_path_db=bk_name,
+						  db_host = frappe.db.host)
+	odb.take_dump(no_compress=True)
+	if not os.path.exists(bk_name):
+		print('Failed to take dump of source database: ' + bk_name)
+		return None
+	return bk_name
 
 @click.command('restore')
 @click.argument('sql-file-path')
