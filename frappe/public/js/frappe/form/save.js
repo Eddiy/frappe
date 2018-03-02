@@ -37,6 +37,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 			});
 		} else {
 			$(btn).prop("disabled", false);
+      callback()
 		}
 	};
 

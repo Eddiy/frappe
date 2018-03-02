@@ -726,7 +726,7 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error, resolve)
 			}
 		}
 		callback && callback(r);
-		resolve();
+		resolve(r);
 	};
 
 	var fail = () => {
