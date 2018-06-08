@@ -257,8 +257,6 @@ def evaluate_alert(doc, alert, event):
 				if e.args[0]== ER.BAD_FIELD_ERROR:
 					alert.db_set('enabled', 0)
 					frappe.log_error('Email Alert {0} has been disabled due to missing field'.format(alert.name))
-		if recipient.email_by_role:
-			recipients = recipients + get_role_emails(recipient.email_by_role)
 					return
 
 			db_value = parse_val(db_value)
